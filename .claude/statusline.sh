@@ -42,9 +42,21 @@ elif [ "$ctx_size" -ge 1000 ] 2>/dev/null; then
 fi
 [ -n "$ctx_label" ] && model_str="${model_name} [${ctx_label}]" || model_str="${model_name}"
 
-# Append effort level when present
+# Append effort level when present (colour-coded by intensity)
 if [ -n "$effort" ]; then
-  model_str="${model_str} effort:${effort}"
+  case "$effort" in
+    low)    effort_color='\033[33m'       ;;  # yellow
+    medium) effort_color='\033[32m'       ;;  # green
+    high)   effort_color='\033[96m'       ;;  # light blue / cyan
+    xhigh)  effort_color='\033[38;5;208m' ;;  # orange
+    max)    effort_color='\033[31m'       ;;  # red
+    *)      effort_color=''               ;;
+  esac
+  if [ -n "$effort_color" ]; then
+    model_str="${model_str} effort:${effort_color}${effort}\033[0m"
+  else
+    model_str="${model_str} effort:${effort}"
+  fi
 fi
 
 # ── Context bar (width 20) ────────────────────────────────────────────────────
@@ -159,7 +171,7 @@ rl_7d_str=$(format_rl "$rl_7d_pct" "$rl_7d_reset" "7d-limit")
 # Line 1: Date | Model | Context bar | Tokens | Directory | Git
 line1=""
 printf -v line1 \
-  "${CYAN}%s %s${RESET} | ${BOLD}${MAGENTA}%s${RESET}%s | %b | Tokens: ${BLUE}%s${RESET} | 📁 ${BOLD}%s${RESET}" \
+  "${CYAN}%s %s${RESET} | \033[38;5;250m%s\033[0m%s | %b | Tokens: ${BLUE}%s${RESET} | 📁 ${BOLD}%s${RESET}" \
   "$datestamp" "$timestamp" \
   "$model_str" \
   "$thinking_str" \
